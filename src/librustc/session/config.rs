@@ -442,17 +442,7 @@ impl OutputFilenames {
         let mut extension = String::new();
 
         if let Some(codegen_unit_name) = codegen_unit_name {
-            if codegen_unit_name.contains(NUMBERED_CODEGEN_UNIT_MARKER) {
-                // If we use the numbered naming scheme for modules, we don't want
-                // the files to look like <crate-name><extra>.<crate-name>.<index>.<ext>
-                // but simply <crate-name><extra>.<index>.<ext>
-                let marker_offset = codegen_unit_name.rfind(NUMBERED_CODEGEN_UNIT_MARKER)
-                                                     .unwrap();
-                let index_offset = marker_offset + NUMBERED_CODEGEN_UNIT_MARKER.len();
-                extension.push_str(&codegen_unit_name[index_offset .. ]);
-            } else {
-                extension.push_str(codegen_unit_name);
-            };
+            extension.push_str(codegen_unit_name);
         }
 
         if !ext.is_empty() {
@@ -1105,6 +1095,8 @@ options! {DebuggingOptions, DebuggingSetter, basic_debugging_options,
                  "run the non-lexical lifetimes MIR pass"),
     trans_time_graph: bool = (false, parse_bool, [UNTRACKED],
         "generate a graphical HTML report of time spent in trans and LLVM"),
+    thinlto: bool = (false, parse_bool, [TRACKED],
+        "enable ThinLTO when possible"),
 }
 
 pub fn default_lib_output() -> CrateType {

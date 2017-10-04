@@ -887,6 +887,11 @@ pub fn trans_crate<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>,
 
     check_for_rustc_errors_attr(tcx);
 
+    if tcx.sess.opts.debugging_opts.thinlto {
+        if unsafe { !llvm::LLVMRustThinLTOAvailable() } {
+            tcx.sess.fatal("this compiler's LLVM does not support ThinLTO");
+        }
+    }
 
     let crate_hash = tcx.dep_graph
                         .fingerprint_of(&DepNode::new_no_params(DepKind::Krate));
@@ -927,7 +932,8 @@ pub fn trans_crate<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>,
             time_graph.clone(),
             link_meta,
             metadata,
-            rx);
+            rx,
+            1);
 
         ongoing_translation.submit_pre_translated_module_to_llvm(tcx, metadata_module);
         ongoing_translation.translation_finished(tcx);
@@ -952,7 +958,8 @@ pub fn trans_crate<'a, 'tcx>(tcx: TyCtxt<'a, 'tcx, 'tcx>,
         time_graph.clone(),
         link_meta,
         metadata,
-        rx);
+        rx,
+        codegen_units.len());
 
     // Translate an allocator shim, if any
     let allocator_module = if let Some(kind) = tcx.sess.allocator_kind.get() {
